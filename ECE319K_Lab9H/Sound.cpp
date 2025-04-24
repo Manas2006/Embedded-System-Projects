@@ -33,30 +33,36 @@ void SysTick_IntArm(uint32_t period, uint32_t priority){
 // initialize any global variables
 // Initialize the 5 bit DAC
 void Sound_Init(void){
-
   Index = 0;
   SoundPt = 0;
   SoundCount = 0;
   
   DAC5_Init();
   
-  SysTick->CTRL = 0;         
-  SysTick->LOAD = 7273-1;    
-  SysTick->VAL = 0;         
-  SCB->SHP[1] = SCB->SHP[1]&(~0xC0000000) | 0; 
-
+  // Initialize SysTick for 11kHz sampling
+  SysTick->CTRL = 0;                    // Disable SysTick during setup
+  SysTick->LOAD = 7273-1;              // 80MHz/11kHz = 7273
+  SysTick->VAL = 0;                    // Any write to current clears it
+  SCB->SHP[1] = SCB->SHP[1]&(~0xC0000000) | (0x40000000); // Priority 2
+  SysTick->CTRL = 0x07;                // Enable SysTick with interrupts
 }
 
 extern "C" void SysTick_Handler(void);
 void SysTick_Handler(void){ // called at 11 kHz
-  // output one value to DAC if a sound is active
-
-  DAC5_Out(SoundPt[Index]);
-  if (Index == SoundCount-1) {
-    SysTick->CTRL = 0;
-    Index = 0;
-  } else {
+  if(SoundPt && Index < SoundCount) {
+    DAC5_Out(SoundPt[Index]);
     Index++;
+    if(Index >= SoundCount) {
+      SysTick->CTRL = 0;  // Disable SysTick when done
+      Index = 0;
+      SoundPt = 0;
+      SoundCount = 0;
+    }
+  } else {
+    SysTick->CTRL = 0;  // Safety: disable if no sound playing
+    Index = 0;
+    SoundPt = 0;
+    SoundCount = 0;
   }
 }
 
@@ -96,27 +102,26 @@ void Sound_Explosion(void) {
 }
 
 void Sound_Fastinvader1(void) {
-    Sound_Start(fastinvader1, 15140);
+    Sound_Start(fastinvader1, 982);
 }
 
 void Sound_Fastinvader2(void) {
-    Sound_Start(fastinvader2, 15140);
+    Sound_Start(fastinvader2, 1042);
 }
 
 void Sound_Fastinvader3(void) {
-    Sound_Start(fastinvader3, 15140);
+    Sound_Start(fastinvader3, 1054);
 }
 
 void Sound_Fastinvader4(void) {
-    Sound_Start(fastinvader4, 15140);
+    Sound_Start(fastinvader4, 1098);
 }
 
 void Sound_Highpitch(void) {
-    Sound_Start(highpitch, 33973);
+    Sound_Start(highpitch, 1802);
 }
 
 // void Sound_Background(void) {
 //     Sound_Start(backgroundSounds[currentBackgroundSound], backgroundSoundLengths[currentBackgroundSound]);
 //     currentBackgroundSound = (currentBackgroundSound + 1) % 4;
 // }
-

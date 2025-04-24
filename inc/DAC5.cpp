@@ -15,9 +15,18 @@
 // Input: none
 // Output: none
 void DAC5_Init(void){
-// Assumes LaunchPad_Init has been called
-// I.e., PortB has already been reset and activated (do not reset PortB here again)
-     // write this
+    // Configure PB4-PB0 as GPIO outputs
+    IOMUX->SECCFG.PINCM[PB0INDEX] = 0x00000081; // GPIO output, no pull
+    IOMUX->SECCFG.PINCM[PB1INDEX] = 0x00000081;
+    IOMUX->SECCFG.PINCM[PB2INDEX] = 0x00000081;
+    IOMUX->SECCFG.PINCM[PB3INDEX] = 0x00000081;
+    IOMUX->SECCFG.PINCM[PB4INDEX] = 0x00000081;
+    
+    // Set PB4-PB0 as outputs
+    GPIOB->DOE31_0 |= 0x0000001F; // Enable outputs for PB4-PB0
+    
+    // Initialize output to 0
+    GPIOB->DOUT31_0 &= ~0x0000001F; // Clear PB4-PB0
 }
 
 // **************DAC5_Out*********************
@@ -27,5 +36,9 @@ void DAC5_Init(void){
 // Output: none
 // Note: this solution must be friendly
 void DAC5_Out(uint32_t data){
-     // write this
+    data &= 0x1F; // Ensure only 5 bits are used
+    uint32_t current = GPIOB->DOUT31_0;
+    current &= ~0x1F; // Clear bottom 5 bits
+    current |= data;  // Set new value
+    GPIOB->DOUT31_0 = current; // Atomic write
 }

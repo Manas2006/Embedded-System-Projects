@@ -163,8 +163,6 @@ void UpdateEnemies(void) {
         return;
     }
     
-    // Play background music when enemies move
-    Sound_Background();
     
     // Check boundaries and update movement
     for(int row = 0; row < ENEMY_ROWS; row++) {

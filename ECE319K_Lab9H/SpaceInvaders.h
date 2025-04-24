@@ -16,6 +16,7 @@
 #define POINTS_ROW_2_3 20  // Middle rows
 #define POINTS_ROW_4_5 10  // Bottom rows
 
+
 // Game states
 typedef enum {
     MENU_STATE,
